@@ -38,6 +38,12 @@ namespace LALib
         //    return (a == b);
         //}
 
+
+        public double Round(double a, int numDec)
+        {
+            return Math.Round(a, numDec);
+        }
+
         public double Minus(double a)
         {
             return -a;

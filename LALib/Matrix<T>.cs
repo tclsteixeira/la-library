@@ -112,6 +112,292 @@ namespace LALib
 
 
         /// <summary>
+        /// Performs an entrywise operation between two matrices.
+        /// </summary>
+        /// <returns>Returns new matrix with result.</returns>
+        /// <param name="A">First matrix.</param>
+        /// <param name="B">Second matrix.</param>
+        /// <param name="func">Function to compute result between two elements (A[i][j] and B[i][j]).</param>
+        /// <remarks>
+        /// Both matrices must have same size (number of rows and columns).
+        /// </remarks>
+        private T[][] EntryWiseOperation(T[][] A, T[][] B, Func<T, T, IBasicMathOperations<T>, T> func)
+        {
+            T[][] FResult = null;
+            int Ra = Matrix<T>.GetNumRows(A);
+            int Ca = Matrix<T>.GetNumCols(A);
+            int Rb = Matrix<T>.GetNumRows(B);
+            int Cb = Matrix<T>.GetNumCols(B);
+
+            if (!((Ra == Rb) && (Ca == Cb)))
+                throw new ArgumentException("Entrywise operations between matrices requires that both matrices must have the same dimensions.");
+
+            FResult = Matrix<T>.CreateJaggedArray(Ra, Ca);
+
+            for (int i = 0; i < Ra; i++)
+            {
+                for (int j = 0; j < Ca; j++)
+                {
+                    FResult[i][j] = func(A[i][j], B[i][j], this.Op);
+                }
+            }
+
+            return FResult;
+        }
+
+
+        /// <summary>
+        /// Performs an entrywise operation between two matrices using parallelism.
+        /// </summary>
+        /// <returns>Returns new matrix with result.</returns>
+        /// <param name="A">First matrix.</param>
+        /// <param name="B">Second matrix.</param>
+        /// <param name="func">Function to compute result between two elements (A[i][j] and B[i][j]).</param>
+        /// <remarks>
+        /// Both matrices must have same size (number of rows and columns).
+        /// </remarks>
+        private T[][] EntryWiseOperationPar(T[][] A, T[][] B, Func<T, T, IBasicMathOperations<T>, T> func)
+        {
+            T[][] FResult = null;
+            int Ra = Matrix<T>.GetNumRows(A);
+            int Ca = Matrix<T>.GetNumCols(A);
+            int Rb = Matrix<T>.GetNumRows(B);
+            int Cb = Matrix<T>.GetNumCols(B);
+
+            if (!((Ra == Rb) && (Ca == Cb)))
+                throw new ArgumentException("Entrywise operations between matrices requires that both matrices must have the same dimensions.");
+
+            FResult = Matrix<T>.CreateJaggedArray(Ra, Ca);
+
+            if (Ra > Ca)
+            {
+                Parallel.For(0, Ra, delegate (int i)
+                    {
+                        for (int j = 0; j < Ca; j++)
+                        {
+                            FResult[i][j] = func(A[i][j], B[i][j], this.Op);
+                        }
+                    }
+                );
+            }
+            else
+            {
+                for (int i = 0; i < Ra; i++)
+                {
+                    Parallel.For(0, Ca, delegate (int j)
+                        {
+                            FResult[i][j] = func(A[i][j], B[i][j], this.Op);
+                        }
+                    );
+                }
+            }
+
+            return FResult;
+        }
+
+
+
+        #region Entrywise matrix functions for binary operations
+
+        #region Function delegates for entrywise matrix binary operations
+
+        private readonly Func<T, T, IBasicMathOperations<T>, T> _ewMult = (a, b, op) => op.Mult(a, b);
+        private readonly Func<T, T, IBasicMathOperations<T>, T> _ewAdd = (a, b, op) => op.Add(a, b);
+        private readonly Func<T, T, IBasicMathOperations<T>, T> _ewSub = (a, b, op) => op.Sub(a, b);
+        private readonly Func<T, T, IBasicMathOperations<T>, T> _ewDiv = (a, b, op) => 
+                                            {
+                                                if (b.Equals(op.Zero))
+                                                    throw new DivideByZeroException("Can not divide matrix element by zero.");
+                                                else
+                                                    return op.Div(a, b); 
+                                            };
+
+        #endregion Function delegates for entrywise matrix binary operations
+
+
+
+        /// <summary>
+        /// Computes entrywise multiplication (or Hadamard product) between elements of two matrices 
+        /// (i.e. A[i][j] * B[i][j]).
+        /// </summary>
+        /// <returns>Returns the result matrix.</returns>
+        /// <param name="A">First matrix.</param>
+        /// <param name="B">Second matrix.</param>
+        /// <remarks>
+        /// Both matrices must have same dimensions.
+        /// </remarks>
+        public T[][] EwMult(T[][] A, T[][] B)
+        {
+            T[][] FResult = this.EntryWiseOperation(A, B, _ewMult);
+            return FResult;
+        }
+
+
+        /// <summary>
+        /// Computes entrywise multiplication (or Hadamard product) between elements of two matrices 
+        /// (i.e. A[i][j] * B[i][j]) using parallelism.
+        /// </summary>
+        /// <returns>Returns the result matrix.</returns>
+        /// <param name="A">First matrix.</param>
+        /// <param name="B">Second matrix.</param>
+        /// <remarks>
+        /// Both matrices must have same dimensions.
+        /// </remarks>
+        public T[][] EwMultPar(T[][] A, T[][] B)
+        {
+            T[][] FResult = this.EntryWiseOperationPar(A, B, _ewMult);
+            return FResult;
+        }
+
+
+        /// <summary>
+        /// Computes entrywise matrix addition between elements of two matrices 
+        /// (i.e. A[i][j] + B[i][j]).
+        /// </summary>
+        /// <returns>Returns the result matrix.</returns>
+        /// <param name="A">First matrix.</param>
+        /// <param name="B">Second matrix.</param>
+        /// <remarks>
+        /// Both matrices must have same dimensions.
+        /// </remarks>
+        public T[][] EwAdd(T[][] A, T[][] B)
+        {
+            T[][] FResult = this.EntryWiseOperation(A, B, _ewAdd);
+            return FResult;
+        }
+
+
+        /// <summary>
+        /// Computes entrywise matrix addition between elements of two matrices 
+        /// (i.e. A[i][j] + B[i][j]) using parallelism.
+        /// </summary>
+        /// <returns>Returns the result matrix.</returns>
+        /// <param name="A">First matrix.</param>
+        /// <param name="B">Second matrix.</param>
+        /// <remarks>
+        /// Both matrices must have same dimensions.
+        /// </remarks>
+        public T[][] EWAddPar(T[][] A, T[][] B)
+        {
+            T[][] FResult = this.EntryWiseOperationPar(A, B, _ewAdd);
+            return FResult;
+        }
+
+
+        /// <summary>
+        /// Computes entrywise matrix subtraction between elements of two matrices 
+        /// (i.e. A[i][j] - B[i][j]).
+        /// </summary>
+        /// <returns>Returns the result matrix.</returns>
+        /// <param name="A">First matrix.</param>
+        /// <param name="B">Second matrix.</param>
+        /// <remarks>
+        /// Both matrices must have same dimensions.
+        /// </remarks>
+        public T[][] EwSub(T[][] A, T[][] B)
+        {
+            T[][] FResult = this.EntryWiseOperation(A, B, _ewSub);
+            return FResult;
+        }
+
+
+        /// <summary>
+        /// Computes entrywise matrix subtraction between elements of two matrices 
+        /// (i.e. A[i][j] - B[i][j]) using parallelism.
+        /// </summary>
+        /// <returns>Returns the result matrix.</returns>
+        /// <param name="A">First matrix.</param>
+        /// <param name="B">Second matrix.</param>
+        /// <remarks>
+        /// Both matrices must have same dimensions.
+        /// </remarks>
+        public T[][] EWSubPar(T[][] A, T[][] B)
+        {
+            T[][] FResult = this.EntryWiseOperationPar(A, B, _ewSub);
+            return FResult;
+        }
+
+
+        /// <summary>
+        /// Computes entrywise matrix division between elements of two matrices 
+        /// (i.e. A[i][j] / B[i][j]).
+        /// </summary>
+        /// <returns>Returns the result matrix.</returns>
+        /// <param name="A">First matrix.</param>
+        /// <param name="B">Second matrix.</param>
+        /// <remarks>
+        /// Both matrices must have same dimensions.
+        /// </remarks>
+        public T[][] EwDiv(T[][] A, T[][] B)
+        {
+            T[][] FResult = this.EntryWiseOperation(A, B, _ewDiv);
+            return FResult;
+        }
+
+
+        /// <summary>
+        /// Computes entrywise matrix division between elements of two matrices 
+        /// (i.e. A[i][j] / B[i][j]) using parallelism.
+        /// </summary>
+        /// <returns>Returns the result matrix.</returns>
+        /// <param name="A">First matrix.</param>
+        /// <param name="B">Second matrix.</param>
+        /// <remarks>
+        /// Both matrices must have same dimensions.
+        /// </remarks>
+        public T[][] EWDivPar(T[][] A, T[][] B)
+        {
+            T[][] FResult = this.EntryWiseOperationPar(A, B, _ewDiv);
+            return FResult;
+        }
+
+
+        #endregion Entrywise matrix functions for binary operations
+
+
+
+        /// <summary>
+        /// Rounds the numeric elements of a matrix modifying the original matrix.
+        /// </summary>
+        /// <returns>
+        /// Returns the original matrix with his elements 
+        /// rounded to a number of decimal places.
+        /// </returns>
+        /// <param name="A">The original matrix <paramref name="A"/>.</param>
+        /// <param name="numDec">Number of decimal places to be rounded.</param>
+        public T[][] RoundInPlace(T[][] A, int numDec)
+        {
+            int R = Matrix<T>.GetNumRows(A);
+            int C = Matrix<T>.GetNumCols(A);
+
+            if (R > C)
+            {
+                Parallel.For(0, R, delegate (int i)
+                    {
+                        for (int j = 0; j < C; j++)
+                        {
+                            A[i][j] = this.Op.Round(A[i][j], numDec);
+                        }
+                    }
+                );
+            }
+            else
+            {
+                for (int i = 0; i < R; i++)
+                {
+                    Parallel.For(0, C, delegate (int j)
+                        {
+                            A[i][j] = this.Op.Round(A[i][j], numDec);
+                        }
+                    );
+                }
+            }
+
+            return A;
+        }
+
+
+        /// <summary>
         /// Utility function to initialize a jagged array of any type.
         /// </summary>
         /// <returns>The jagged array.</returns>

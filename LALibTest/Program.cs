@@ -14,7 +14,11 @@ namespace LALibTest
         /// <param name="args">The command-line arguments.</param>
         public static void Main(string[] args)
         {
-            Console.WriteLine("LALib tests:");
+            Console.WriteLine();
+            Console.WriteLine("---------------------------------------------------------");
+            Console.WriteLine("--  LALib tests:");
+            Console.WriteLine("---------------------------------------------------------");
+            Console.WriteLine();
 
             Console.WriteLine("Let A (2x3) matrix and B (3x2) matrix,");
             Console.WriteLine();
@@ -22,22 +26,24 @@ namespace LALibTest
             Int32Matrix i32AR = new Int32Matrix();
             ComplexMatrix cpxMat = new ComplexMatrix();
 
-            int[][] A = Matrix<int>.CreateJaggedArray(2, 3);
-            int[][] B = Matrix<int>.CreateJaggedArray(3, 2);
+            // Remember, matrices are always 2 dimensional jagged arrays 
+
+            // Ex: Create matrix instance of integers with default values (zero)
+            int[][] A = Matrix<int>.CreateJaggedArray(2, 3);    // 2 rows, 3 cols
+            int[][] B = Matrix<int>.CreateJaggedArray(3, 2);    // 3 rows, 2 cols
 
             int n = 2; // A.GetLength(0);     // num rows A
             int m = 3; // A[0].GetLength(0);     // num cols A
             int p = 2; //B[0].GetLength(0);     // Num cols B (num rows B must be equal to num cols A)
 
-            Console.WriteLine("Create randow matrix A:");
+            Console.WriteLine("Create randow matrix A in the range [-10..10]:");
             A = Int32Matrix.Random(n, m, -10, 10, 1254);
-            //FillRandom(A);
 
             Console.WriteLine("Matrix A:");
             PrintMatrix<int>(A);
 
             Console.WriteLine();
-            Console.WriteLine("Create randow matrix B:");
+            Console.WriteLine("Create randow matrix B in the range [-10..10]:");
             B = Int32Matrix.Random(m, p, -10, 10, 1124);
 
             Console.WriteLine("Matrix B:");
@@ -53,8 +59,49 @@ namespace LALibTest
             PrintMatrix(C);
 
             Console.WriteLine();
+            Console.WriteLine("----------------------------------");
 
-            // until aprox. 50000 cells single core execution seems faster than parallel.
+            A = Int32Matrix.Random(3, 3, -10, 10, 7777);
+            B = Int32Matrix.Random(3, 3, -10, 10, 6777);
+
+            Console.WriteLine("Matrix A 3x3 random [-10..10]:");
+            PrintMatrix(A);
+
+            Console.WriteLine();
+            Console.WriteLine("Matrix B 3x3 random [-10..10]:");
+            PrintMatrix(B);
+
+            Console.WriteLine();
+            Console.WriteLine("----------------------------------");
+            Console.WriteLine("Entrywise matrix addition A+B:");
+            C = i32AR.EwAdd(A, B);
+            PrintMatrix(C);
+
+            Console.WriteLine();
+            Console.WriteLine("----------------------------------");
+            Console.WriteLine("Entrywise matrix subtraction A-B:");
+            C = i32AR.EwSub(A, B);
+            PrintMatrix(C);
+
+            Console.WriteLine();
+            Console.WriteLine("----------------------------------");
+            Console.WriteLine("Entrywise matrix product (or Hadamard product) A*B:");
+            PrintMatrix(i32AR.EwMult(A, B));
+
+            Console.WriteLine();
+            Console.WriteLine("----------------------------------");
+            Console.WriteLine("Entrywise matrix product (or Hadamard product) A*B");
+            Console.WriteLine("with parallelization:");
+            PrintMatrix(i32AR.EwMultPar(A, B));
+
+            Console.WriteLine();
+            Console.WriteLine("----------------------------------");
+            Console.WriteLine("Random 3x3 matrix of decimal (128 bits) elements between -10 and 10:");
+            Console.WriteLine();
+            decimal[][] decMat = DecimalMatrix.Random(3, 3, -10, 10, 7309);
+            PrintMatrix(decMat);
+
+            Console.WriteLine();
 
             n = 500; m = 500;
             p = 500;
@@ -380,10 +427,11 @@ namespace LALibTest
             Console.WriteLine("-- QR Decomposition ---------------");
             Console.WriteLine("-------------------------------------");
             Console.WriteLine("Double matrix 'D' 3x3:");
-            double[][] D = Matrix<double>.CreateJaggedArray(3, 3);
-            D[0] = new double[] { 12, -51, 4 };
-            D[1] = new double[] { 6,  167,  -68};
-            D[2] = new double[] { -4, 24, -41};
+            double[][] D = Matrix<double>.CreateJaggedArray(4, 4);
+            D[0] = new double[] { 12, -51, 4, -2 };
+            D[1] = new double[] { 6,  167,  -68, 4};
+            D[2] = new double[] { -4, 24, -41, -8};
+            D[3] = new double[] { -1, 242, -31, 7 };
             Console.WriteLine("Matrix D:");
             PrintMatrix<double>(D);
 
@@ -401,7 +449,7 @@ namespace LALibTest
                 Console.WriteLine();
                 Console.WriteLine("Prof: D = QxR:");
                 Console.WriteLine("Matrix QxR:");
-                PrintMatrix<double>(dblmat.Mult(Q, R));
+                PrintMatrix<double>(dblmat.RoundInPlace( dblmat.Mult(Q, R), 7));
             }
             else
                 Console.WriteLine("Failed to compute QR decomposition on matrix 'D'.");
@@ -409,11 +457,13 @@ namespace LALibTest
             Console.WriteLine();
             Console.WriteLine("-- QR Decomposition using parallelism ---------------");
             Console.WriteLine("-------------------------------------");
-            Console.WriteLine("Double matrix 'D' 3x3:");
-            double[][] Dpar = Matrix<double>.CreateJaggedArrayPar(3, 3);
-            Dpar[0] = new double[] { 12, -51, 4 };
-            Dpar[1] = new double[] { 6, 167, -68 };
-            Dpar[2] = new double[] { -4, 24, -41 };
+            Console.WriteLine("Double matrix 'D' 4x4:");
+            double[][] Dpar = Matrix<double>.ClonePar(D);// Matrix<double>.CreateJaggedArrayPar(3, 3);
+            //Dpar[0] = new double[] { 12, -51, 4, -2 };
+            //Dpar[1] = new double[] { 6, 167, -68, 4 };
+            //Dpar[2] = new double[] { -4, 24, -41, -8 };
+            //Dpar[3] = new double[] { -1, 242, -31, 7 };
+
             Console.WriteLine("Matrix D:");
             PrintMatrix<double>(Dpar);
 
@@ -431,7 +481,7 @@ namespace LALibTest
                 Console.WriteLine();
                 Console.WriteLine("Prof: D = QxR:");
                 Console.WriteLine("Matrix QxR:");
-                PrintMatrix<double>(dblmat.MultPar(Qpar, Rpar));
+                PrintMatrix<double>(dblmat.RoundInPlace(dblmat.MultPar(Qpar, Rpar), 7 ));
             }
             else
                 Console.WriteLine("Failed to compute QR decomposition using parallelism on matrix 'D'.");
@@ -461,47 +511,7 @@ namespace LALibTest
             //Console.WriteLine("Press any key to continue ...");
             //Console.ReadKey();
         }
-
-
-        ///// <summary>
-        ///// Fills a matrix of integers with random values.
-        ///// </summary>
-        ///// <param name="m1">The source matrix.</param>
-        //private static void FillRandom(int[][] m1)
-        //{
-        //    int n = m1.GetLength(0);
-        //    int m = m1[0].GetLength(0);
-        //    Random rnd = new Random();
-
-        //    for (int i = 0; i < n; i++)
-        //    {
-        //        for (int j = 0; j < m; j++)
-        //        {
-        //            m1[i][j] = rnd.Next(-10, 10);
-        //        }
-        //    }
-        //}
-
-
-        ///// <summary>
-        ///// Fills a matrix of doubles with random values.
-        ///// </summary>
-        ///// <param name="m1">The source matrix.</param>
-        //private static void FillRandom(double[][] m1)
-        //{
-        //    int n = m1.GetLength(0);
-        //    int m = m1[0].GetLength(0);
-        //    Random rnd = new Random();
-
-        //    for (int i = 0; i < n; i++)
-        //    {
-        //        for (int j = 0; j < m; j++)
-        //        {
-        //            m1[i][j] = rnd.NextDouble();
-        //        }
-        //    }
-        //}
-
+     
 
         /// <summary>
         /// Prints the matrix.

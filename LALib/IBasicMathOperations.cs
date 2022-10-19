@@ -44,6 +44,7 @@ namespace LALib
         T Conjugate(T a);
         double SqrtDbl(T a);
         T Sqrt(T a);
+        T Round(T a, int numDec);
 
         //double Magnitude(T a); // same as Abs
         double ToDouble(T a);

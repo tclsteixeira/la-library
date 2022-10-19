@@ -317,24 +317,24 @@ namespace LALib
 
             T[] accum = new T[cols];
             // remaining rows of a
-            Parallel.For(1, rows, delegate (int i)
-            //for (int i = 1; i < rows; ++i)
+            //Parallel.For(1, rows, delegate (int i)
+            for (int i = 1; i < rows; ++i)
+            {
+                for (int j = 0; j < cols; ++j)
                 {
-                    for (int j = 0; j < cols; ++j)
+                    // accumulate projections
+                    accum = new T[cols];
+                    for (int t = 0; t < i; ++t)
                     {
-                        // accumulate projections
-                        accum = new T[cols];
-                        for (int t = 0; t < i; ++t)
-                        {
-                            T[] proj = VecProjectionPar(u[t], a[i]);
-                            for (int k = 0; k < cols; ++k)
-                                accum[k] = this.Op.Add(accum[k], proj[k]);
-                        }
+                        T[] proj = VecProjectionPar(u[t], a[i]);
+                        for (int k = 0; k < cols; ++k)
+                            accum[k] = this.Op.Add(accum[k], proj[k]);
                     }
-                    for (int k = 0; k < cols; ++k)
-                        u[i][k] = this.Op.Sub(a[i][k], accum[k]);
                 }
-            );
+                for (int k = 0; k < cols; ++k)
+                    u[i][k] = this.Op.Sub(a[i][k], accum[k]);
+            }
+            //);
 
             //for (int i = 0; i < rows; ++i)
             Parallel.For(0, rows, delegate (int i) 

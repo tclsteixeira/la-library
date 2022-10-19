@@ -38,6 +38,11 @@ namespace LALib
         //    return (a == b);
         //}
 
+        public int Round(int a, int numDec)
+        {
+            return a;
+        }
+
         public int Minus(int a)
         {
             return -a;

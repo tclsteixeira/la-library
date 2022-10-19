@@ -54,6 +54,11 @@ namespace LALib
         //    return (a == b);
         //}
 
+        public cpx Round(cpx a, int numDec)
+        {
+            return new cpx( Math.Round(a.Real, numDec), Math.Round(a.Imaginary, numDec) );
+        }
+
         public cpx Minus(cpx a)
         {
             return -a;

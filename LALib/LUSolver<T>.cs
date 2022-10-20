@@ -50,8 +50,6 @@ namespace LALib
     /// </remarks>
     public class LUSolver<T> //where T : IComparable
     {
-
-
         private IBasicMathOperations<T> Op { get; set; }
 
         public LUSolver(IBasicMathOperations<T> _op)
@@ -239,7 +237,7 @@ namespace LALib
         /// <param name="N">The matrix size.</param>
         /// <param name="lower">The computed lower triangular matrix.</param>
         /// <param name="upper">The computed upper triangular matrix.</param>
-        public void lUUpperLower(T[][] mat, int N, out T[][] lower, out T[][] upper)
+        public void LUUpperLower(T[][] mat, int N, out T[][] lower, out T[][] upper)
         {
             lower = Matrix<T>.CreateJaggedArray(N, N);
             upper = Matrix<T>.CreateJaggedArray(N, N);
@@ -339,11 +337,6 @@ namespace LALib
                     }
                 );
 
-                //for (int k = i; k < N; k++)
-                //{
-
-                //}
-
                 // Lower Triangular
                 Parallel.For(i, N, delegate (int k)
                     {
@@ -367,94 +360,9 @@ namespace LALib
                         }
                     }
                 );
-               
-                //for (int k = i; k < N; k++)
-                //{
-                                        
-                //}
             }
         }
 
-
-        //    public static T[][] Lower(T[][] LUP, int[] P, bool overwrite)
-        //{
-        //    T[][] FResult = null;
-        //    T[][] tempMat = null;
-        //    try
-        //    {
-        //        int N = LUP.Length;
-
-        //        if (overwrite)
-        //            tempMat = LUP;
-        //        else
-        //            tempMat = Matrix.Clone<T>(LUP);
-
-        //        FResult = Matrix.CreateJaggedArray<T>(N, N);
-
-        //        // Permute rows
-        //        for (int i = 0; i < (P.Length-1); i++)
-        //        {
-        //            T[] temp = tempMat[i];
-        //            tempMat[i] = tempMat[P[i]];
-        //            tempMat[P[i]] = temp;
-        //        }
-
-        //        // extract lower
-        //        for (int i = 0; i < N; i++)
-        //        {
-        //            for (int j = 0; j < N; j++)
-        //            {
-        //                if (i >= j)
-        //                    FResult[i][j] = tempMat[i][j];
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw ex;
-        //    }
-
-        //    return FResult;
-        //}
-
-
-        //public static T[][] Upper(T[][] LUP, int[] P, bool overwrite)
-        //{
-        //    T[][] FResult = null;
-        //    try
-        //    {
-        //        int N = LUP.Length;
-
-        //        if (overwrite)
-        //            FResult = LUP;
-        //        else
-        //            FResult = Matrix<T>.Clone<T>(LUP);
-
-        //        // Permute rows
-        //        for (int i = 0; i < P.Length-1; i++)
-        //        {
-        //            T[] temp = LUP[i];
-        //            LUP[i] = LUP[P[i]];
-        //            LUP[P[i]] = temp;
-        //        }
-
-        //        // extract lower
-        //        for (int i = 0; i < N; i++)
-        //        {
-        //            for (int j = 0; j < N; j++)
-        //            {
-        //                if (i <= j)
-        //                    FResult[i][j] = LUP[i][j];
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw ex;
-        //    }
-
-        //    return FResult;
-        //}
 
 
         #region Determinant calculation
@@ -512,58 +420,6 @@ namespace LALib
             FResult = this.DeterminantFromLU(LUP);
             return FResult;
         }
-
-
-        ///// <summary>
-        ///// Computes the matrix determinant from complex number decomposed matrix <paramref name="A"/>.
-        ///// </summary>
-        ///// <returns>Returns the determinant from a complex number decomposed matrix.</returns>
-        ///// <param name="LUP">The complex number decomposed matrix in the form A = LU * P.</param>
-        ///// <remarks>
-        ///// 
-        /////     Note: this function applies to complex number matrices only.
-        ///// 
-        ///// </remarks>
-        //public static cpx DeterminantFromLU(cpx[][] LUP)
-        //{
-        //    if (LUP == null)
-        //        throw new Exception("Unable to compute matrix determinant.");
-
-        //    cpx FResult = 0.0;
-        //    dynamic val = FResult;
-
-        //    for (int i = 0; i < LUP.Length; ++i)
-        //    {
-        //        val = LUP[i][i];
-        //        FResult *= val;
-        //    }
-
-        //    return FResult;
-        //}
-
-
-        ///// <summary>
-        ///// Computes the matrix determinant from complex number decomposed matrix <paramref name="A"/>.
-        ///// </summary>
-        ///// <returns>Returns the determinant from a complex number decomposed matrix.</returns>
-        ///// <param name="A">The original complex number matrix.</param>
-        ///// <remarks>
-        /////     Determinant = Product of decomposed matrix diagonal values.
-        ///// 
-        /////     Note: this function applies to complex number matrices only.
-        ///// 
-        ///// </remarks>
-        //public static cpx Determinant(cpx[][] A)
-        //{
-        //    cpx FResult = 0.0;
-        //    cpx[][] LUP = Matrix<T>.LUPDecompose<cpx>(A, out int[] perm);
-
-        //    if (LUP == null)
-        //        throw new Exception("Unable to compute matrix determinant.");
-
-        //    FResult = DeterminantFromLU(LUP);
-        //    return FResult;
-        //}
 
 
         #endregion Determinant calculation
@@ -787,63 +643,6 @@ namespace LALib
                 //x[i] = x[i] / A[i][i];
             }
         }
-
-
-        ///// <summary>
-        ///// Solves a linear equations system using LU decomposition method using parallelization.
-        ///// </summary>
-        ///// <param name="A">Output matrix filled in LUPDecompose() method <see cref="LUPDecomposeInPlace(ref T[][], int, double, ref int[])"/>.
-        /////                 "A" contains a copy of both matrices L-E and U as A=(L-E)+U such that P*A=L*U.
-        ///// </param>
-        ///// <param name="P1">Output Permutation vector filled in LUPDecompose() method <see cref="LUPDecomposeInPlace(ref T[][], int, double, ref int[])"/>.</param>
-        ///// <param name="b">Vector filled with second member terms of linear equation system.</param>
-        ///// <param name="N">Matrix dimension of A (nº rows).</param>
-        ///// <param name="x">Returns the solution vector of A*x=b.</param>
-        ///// <remarks>
-        /////     OUTPUT -> x - solution vector of A*x=b
-        ///// </remarks>
-        //private void LUPSolvePar(T[][] A, int[] P1, T[] b, int N, ref T[] x)
-        //{
-        //    T[] x1 = x;
-        //    Parallel.For(0, N, delegate(int i)
-        //        {
-        //            x1[i] = b[P1[i]];
-
-        //            T a1;
-        //            T a2;
-        //            for (int k = 0; k < i; k++)
-        //            {
-        //                a1 = A[i][k];
-        //                a2 = x1[k];
-        //                x1[i] = this.Op.Sub(x1[i], this.Op.Mult(a1, a2));
-        //                //x[i] -= A[i][k] * x[k];
-        //            }
-        //        }
-        //    );
-
-        //    Parallel.For(0, N, delegate (int i)
-        //        {
-        //            i = N - i - 1;
-        //            //dynamic a1;
-        //            //dynamic a2;
-        //            for (int k = i + 1; k < N; k++)
-        //            {
-        //                //a1 = A[i][k];
-        //                //a2 = x[k];
-        //                //x[i] -= a1 * a2;
-        //                x1[i] = this.Op.Sub(x1[i], this.Op.Mult(A[i][k], x1[k]));
-        //            }
-
-        //            //a1 = x[i];
-        //            //a2 = A[i][i];
-        //            //x[i] = a1 / a2;
-        //            x1[i] = this.Op.Div(x1[i], A[i][i]);
-
-        //            //x[i] = x[i] / A[i][i];
-        //        }
-        //    );
-        //}
-
 
 
         #endregion methods

@@ -1681,7 +1681,7 @@ namespace LALib
         {
             int N = Matrix<T>.GetNumRows(A);
             LUSolver<T> solv = new LUSolver<T>(this.Op);
-            solv.lUUpperLower(A, N, out T[][] lower, out T[][] upper);
+            solv.LUUpperLower(A, N, out T[][] lower, out T[][] upper);
             return lower;
         }
 
@@ -1712,7 +1712,7 @@ namespace LALib
         {
             int N = Matrix<T>.GetNumRows(A);
             LUSolver<T> solv = new LUSolver<T>(this.Op);
-            solv.lUUpperLower(A, N, out T[][] lower, out T[][] upper);
+            solv.LUUpperLower(A, N, out T[][] lower, out T[][] upper);
             return upper;
         }
 

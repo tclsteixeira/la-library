@@ -109,7 +109,7 @@ namespace LALib
 
         public cpx Conjugate(cpx a)
         {
-            return a;
+            return cpx.Conjugate(a);
         }
 
         public double SqrtDbl(cpx a)
